@@ -15,7 +15,7 @@ interface CustomJwtPayload extends JwtPayload {
 export const isUserAuthenticated = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         // Get the token from the request cookies
-        const { token } = req.cookies;
+        const token = req.cookies['auth-token'];
 
         // If the token doesn't exist, return an error message
         if (!token) {
@@ -26,10 +26,10 @@ export const isUserAuthenticated = async (req: AuthenticatedRequest, res: Respon
         }
 
         // Verify the token using the JWT secret
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET as string) as CustomJwtPayload;
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as CustomJwtPayload;
 
         // Find the user associated with the decoded email
-        const user = await User.findById({ email: decodedToken.email });
+        const user: any = await User.find({ email: decodedToken.email });
 
         // If the user doesn't exist, return an error message
         if (!user) {

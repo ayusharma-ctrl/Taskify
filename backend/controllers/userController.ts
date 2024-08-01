@@ -43,7 +43,11 @@ export const signup = async (req: Request, res: Response) => {
             password: hashedPassword,
         })
 
-        sendToken({ name: user.name, email: user.email }, res, "Registered successfully, please signin!", 201)
+        return res.status(201).json({
+            success: true,
+            message: "Registered successfully, please signin!",
+            user: { name: user?.name, email: user?.email },
+        });
     }
     catch (e: any) {
         return res.status(500).json({ success: false, message: e.message })

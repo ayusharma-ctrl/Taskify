@@ -1,6 +1,6 @@
 import express from 'express';
 import { isUserAuthenticated } from '../middlewares/auth';
-import { addTask, getAllTasks, getTask, updateTask, deleteTask } from '../controllers/taskController';
+import { addTask, getAllTasks, getTask, updateTask, deleteTask, updateStatus } from '../controllers/taskController';
 
 const router = express.Router();
 
@@ -15,6 +15,9 @@ router.get("/:id", isUserAuthenticated, getTask);
 
 //api to update task data by id
 router.put("/:id", isUserAuthenticated, updateTask);
+
+//api to update task status by id
+router.put("/status/:id", isUserAuthenticated, updateStatus);
 
 //api to delete task by id
 router.delete("/:id", isUserAuthenticated, deleteTask);

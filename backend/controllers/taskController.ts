@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { ITask, Task } from "../models/taskModel";
 import { AuthenticatedRequest } from '../middlewares/auth';
+import mongoose from 'mongoose';
 
 
 export const addTask = async (req: AuthenticatedRequest, res: Response) => {
@@ -26,7 +27,8 @@ export const addTask = async (req: AuthenticatedRequest, res: Response) => {
             status,
             priority,
             deadline,
-            createdBy: _id
+            createdBy: _id,
+            createdAt: new Date(),
         })
 
         // send the response
@@ -116,7 +118,8 @@ export const updateTask = async (req: Request, res: Response) => {
     }
 }
 
-export const deleteTask = async (req: Request, res: Response) => {
+// method to update task status
+export const updateStatus = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
 
@@ -125,10 +128,50 @@ export const deleteTask = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'ID is required' });
         }
 
+        // read the data from req body
+        const { status }: { status: string } = req.body;
+
+        // validation check
+        if (status?.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid status type!"
+            });
+        }
+
+        // find task in db
+        const task = await Task.findById(id);
+        if (!task) {
+            return res.status(404).json({ error: 'Task not found' });
+        }
+
+        // save latest status
+        task.status = status;
+        await task.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Task has been updated successfully!",
+            task
+        });
+    } catch (err) {
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+export const deleteTask = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        // validation check
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ success: false, error: 'Invalid task ID' });
+        }
+
         const result = await Task.findByIdAndDelete(id);
 
         if (!result) {
-            return res.status(404).json({ error: 'Task not found' });
+            return res.status(404).json({ success: false, error: 'Task not found' });
         }
 
         return res.status(204).json({ success: true, message: 'Task deleted successfully' });
