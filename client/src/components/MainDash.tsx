@@ -1,14 +1,18 @@
 "use client";
-import { statusOptions } from '@/lib/utils';
-import { userData } from '@/store/slices/userSlice';
+import { baseUrl, statusOptions } from '@/lib/utils';
+import { setUser, userData } from '@/store/slices/userSlice';
 import { CircleHelp } from 'lucide-react';
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import TaskStack from './common/TaskStack';
 import { DndContext, rectIntersection } from "@dnd-kit/core";
-import { updateStatus } from '@/store/slices/taskSlice';
+import { ITask, setTasks, updateStatus } from '@/store/slices/taskSlice';
+import axios from 'axios';
+import { toast } from 'sonner';
+import Loader from './common/Loader';
 
 const MainDash = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { name } = useSelector(userData);
   const dispatch = useDispatch();
 
@@ -25,6 +29,54 @@ const MainDash = () => {
     }
   }
 
+  const fetchUserData = async () => {
+    try {
+      const response = await axios.get(`${baseUrl}/auth/user`, { withCredentials: true });
+      if (response?.data?.success) {
+        const user = response?.data?.user;
+        dispatch(setUser(user[0]));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const fetchUserTasks = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${baseUrl}/task`, { withCredentials: true });
+      if (response?.data?.success) {
+        const tasks: ITask[] = response?.data?.tasks || [];
+        dispatch(setTasks(tasks));
+        toast.success("Data refreshed!");
+      }
+      setIsLoading(false);
+    } catch (error) {
+      setIsLoading(false);
+      toast.error("Failed to fetch latest data", {
+        description: "Please try again later or refresh the page!"
+      });
+    }
+  }
+
+  const handleTaskUpdate = async (id: string, status: string) => {
+    try {
+      const response = await axios.put(`${baseUrl}/task/status/${id}`, { status }, { withCredentials: true });
+      if (response?.data?.success) {
+        toast.success("Task status updated!");
+      }
+    } catch (error) {
+      toast.error("Failed to save status", {
+        description: "Please try again later or refresh the page!"
+      });
+    }
+  }
+
+  useEffect(() => {
+    fetchUserData();
+    fetchUserTasks();
+  }, []);
+
   return (
     <div className='h-full flex flex-col justify-start items-start gap-4 px-2'>
 
@@ -39,6 +91,8 @@ const MainDash = () => {
         </div>
       </div>
 
+      {isLoading && <div className='my-2'><Loader text='Fetching lastest data' /></div>}
+
       {/* Tasks section */}
       <DndContext
         collisionDetection={rectIntersection}
@@ -48,7 +102,8 @@ const MainDash = () => {
           const parent = e.active.data.current?.parent ?? "to-do";
           // console.log("container:", container, "title:", index, "parent:", parent)
           if (container && typeof (container) === 'string' && container !== parent) {
-            dispatch(updateStatus({ id: index, status: container }));
+            dispatch(updateStatus({ id: index, status: container })); // update local state
+            handleTaskUpdate(index, container); // update db data asynchronously
           }
         }}
       >

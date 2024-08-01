@@ -16,49 +16,8 @@ interface TaskState {
     data: ITask[];
 }
 
-const testTasks: ITask[] = [
-    {
-        _id: "1",
-        title: "Implement feature X",
-        status: "to-do",
-        priority: "medium",
-        description: "bsajhbjhabh mnss as jsa  n sjabjsbja s hsbahbjsja jhsba shabsjhjab",
-        createdAt: new Date(),
-    },
-    {
-        _id: "2",
-        title: "Fix bug Y",
-        status: "in-progress",
-        priority: "low",
-        createdAt: new Date(),
-    },
-    {
-        _id: "3",
-        title: "Review design Z",
-        status: "under-review",
-        priority: "urgent",
-        description: "bsajhbjhabh mnss as jsa  n sjabjsbja s hsbahbjsja jhsba shabsjhjab",
-        createdAt: new Date(),
-    },
-    {
-        _id: "4",
-        title: "Complete report A",
-        status: "finished",
-        priority: "medium",
-        createdAt: new Date(),
-    },
-    {
-        _id: "5",
-        title: "Update documentation B",
-        status: "to-do",
-        priority: "low",
-        description: "bsajhbjhabh mnss as jsa  n sjabjsbja s hsbahbjsja jhsba shabsjhjab",
-        createdAt: new Date(),
-    },
-];
-
 const initialState: TaskState = {
-    data: testTasks,
+    data: [],
 };
 
 const taskSlice = createSlice({

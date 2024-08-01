@@ -68,27 +68,30 @@ export function SigninForm() {
     };
 
     const handleSubmit = async () => {
-
-        if (Object.values(formErrors).some(Boolean) || !formData.email || !formData.password) {
+        // validation
+        if (Object.values(formErrors).some(Boolean) || !formData.email?.length || !formData.password?.length) {
+            validateField("email", formData.email);
+            validateField("password", formData.password);
             toast.error("Please check the credentials before submitting");
             return;
         }
+        
         try {
             setIsLoading(true);
-            const response = await axios.post(`${baseUrl}/auth/signin`, formData);
+            const response = await axios.post(`${baseUrl}/auth/signin`, formData, { withCredentials: true });
             if (response?.data?.success) {
                 dispatch(setUser({ email: response?.data?.user?.email, name: response?.data?.user?.name }))
                 toast.success(response?.data?.message);
                 setFormData({ email: "", password: "" }); // clear form data
                 setFormErrors({}); // clear errors
                 router.push("/dashboard");
-            } else {
-                toast.error("Something went wrong. Please try again later!");
             }
             setIsLoading(false);
         } catch (error) {
             setIsLoading(false);
-            toast.error("Something went wrong. Please try again later!")
+            toast.error("Login failed", {
+                description: "Please try again later or check the credentials!"
+            });
         }
     };
 

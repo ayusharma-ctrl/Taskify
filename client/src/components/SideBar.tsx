@@ -1,13 +1,40 @@
 "use client";
-import { useSelector } from "react-redux";
-import { userData } from "@/store/slices/userSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { clearUser, userData } from "@/store/slices/userSlice";
 import { AlertCircleIcon, ArrowDownToLine, BellDotIcon, ChevronsRight, CirclePlus, RefreshCcw, UserCircle2 } from 'lucide-react'
 import { Button } from "./ui/button";
 import NavigateButtons from "./NavigateButtons";
 import { TaskAddDialog } from "./common/TaskAddDialog";
+import { useState } from "react";
+import axios from "axios";
+import { baseUrl } from "@/lib/utils";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import Loader from "./common/Loader";
 
 const SideBar = () => {
     const user = useSelector(userData);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const dispatch = useDispatch();
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        try {
+            setIsLoading(true);
+            const response = await axios.get(`${baseUrl}/auth/signout`, { withCredentials: true });
+            if (response?.data?.success) {
+                router.push("/");
+                dispatch(clearUser());
+                toast.success(response?.data?.message);
+            } else {
+                toast.error("Something went wrong. Please try again later!");
+            }
+            setIsLoading(false);
+        } catch (error) {
+            setIsLoading(false);
+            toast.error("Something went wrong. Please try again later!")
+        }
+    };
 
     return (
         <div className='h-full flex flex-col justify-start items-start gap-4 px-2'>
@@ -21,8 +48,8 @@ const SideBar = () => {
                     <RefreshCcw strokeWidth={1} className="h-4 w-4" />
                     <ChevronsRight strokeWidth={1} className="h-4 w-4" />
                 </div>
-                <Button className="text-xs px-2 py-3 h-0">
-                    Logout
+                <Button onClick={handleLogout} className="text-xs px-2 py-3 h-0">
+                    {isLoading ? <Loader text="Loading" /> : "Logout"}
                 </Button>
             </div>
             <NavigateButtons />

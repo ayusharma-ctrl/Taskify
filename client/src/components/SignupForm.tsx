@@ -72,8 +72,15 @@ const SignupForm = () => {
         setFormErrors(prevErrors => ({ ...prevErrors, [fieldName]: errorMessage }));
     };
 
+    const handleValidator = () => {
+        validateField("username", formData.username);
+        validateField("email", formData.email);
+        validateField("password", formData.password);
+    }
+
     const handleSubmit = async () => {
         if (Object.values(formErrors).some(Boolean)|| !formData.username || !formData.email || !formData.password) {
+            handleValidator();
             toast.error("Please check the credentials before submitting");
             return;
         }
@@ -85,13 +92,13 @@ const SignupForm = () => {
                 setFormData({ username: "", email: "", password: "" }); // clear form data
                 setFormErrors({}); // clear errors
                 router.push("/dashboard");
-            } else {
-                toast.error("Something went wrong. Please try again later!");
             }
             setIsLoading(false);
         } catch (error) {
             setIsLoading(false);
-            toast.error("Something went wrong. Please try again later!")
+            toast.error("Signup failed", {
+                description: "Please try again later or check the credentials!"
+            });
         }
     };
 

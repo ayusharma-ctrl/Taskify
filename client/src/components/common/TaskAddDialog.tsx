@@ -22,6 +22,7 @@ interface IProps {
     title: string,
     styles: string,
     icon: JSX.Element,
+    status?: string,
 }
 
 interface FormData {
@@ -38,11 +39,11 @@ interface FormErrors {
 }
 
 export function TaskAddDialog(props: IProps): JSX.Element {
-    const { title, styles, icon } = props;
+    const { title, styles, icon, status } = props;
     const [formData, setFormData] = useState<FormData>({
         title: '',
         description: '',
-        status: '',
+        status: status || '',
         priority: '',
         deadline: '',
     });
@@ -80,7 +81,7 @@ export function TaskAddDialog(props: IProps): JSX.Element {
     };
 
     const handleSubmit = async () => {
-        if (Object.values(formErrors).some(Boolean)|| !formData.title || !formData.status) {
+        if (Object.values(formErrors).some(Boolean) || !formData.title || !formData.status) {
             validateField("title", formData.title);
             validateField("status", formData.status);
             toast.error("Please check the credentials before submitting");
@@ -88,20 +89,20 @@ export function TaskAddDialog(props: IProps): JSX.Element {
         }
         try {
             setIsLoading(true);
-            const response = await axios.post(`${baseUrl}/task`, formData);
+            const response = await axios.post(`${baseUrl}/task`, formData, { withCredentials: true });
             if (response?.data?.success) {
                 dispatch(addTask(response?.data?.task));
                 toast.success(response?.data?.message);
                 setFormData({ title: "", deadline: "", description: "", status: "", priority: "" }); // clear form data
                 setFormErrors({}); // clear errors
                 setIsDialogOpen(false);
-            } else {
-                toast.error("Something went wrong. Please try again later!");
             }
             setIsLoading(false);
         } catch (error) {
             setIsLoading(false);
-            toast.error("Something went wrong. Please try again later!")
+            toast.error("Failed to add", {
+                description: "Please try again later or check the required fields!"
+            });
         }
     };
 
@@ -214,7 +215,7 @@ export function TaskAddDialog(props: IProps): JSX.Element {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-[auto,1fr,2fr] gap-4 mt-4">
+                    <div className="grid grid-cols-[auto,0.4fr,2fr] gap-4 mt-4 w-full">
 
                         <div className="py-2">
                             <Pencil strokeWidth={1} className="w-5 h-5" />
@@ -230,14 +231,14 @@ export function TaskAddDialog(props: IProps): JSX.Element {
                                 value={formData.description}
                                 onChange={handleChange}
                                 placeholder="Enter description here"
-                                className="w-full px-4 py-2 text-base resize-none"
+                                className="w-full px-5 py-2 text-base resize-none"
                             />
                         </div>
                     </div>
                 </div>
                 <DialogFooter>
                     <Button type="submit" onClick={handleSubmit} disabled={isLoading} className="w-full">
-                    {isLoading ? <Loader className="animate-spin h-5 w-5" /> : "Save changes"}
+                        {isLoading ? <Loader className="animate-spin h-5 w-5" /> : "Save changes"}
                     </Button>
                 </DialogFooter>
             </DialogContent>
