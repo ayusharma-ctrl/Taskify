@@ -19,7 +19,6 @@ export const sendToken = (user: IUser, res: Response, message: string, statusCod
         secure: true,
         sameSite: 'none',
         expires: new Date(Date.now() + cookie_expire * 24 * 60 * 60 * 1000),
-        domain: "https://taskify-ayusharmactrls-projects.vercel.app/"
     }).json({
         success: true,
         message,
