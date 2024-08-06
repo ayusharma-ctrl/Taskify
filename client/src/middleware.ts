@@ -1,14 +1,13 @@
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse} from "next/server";
 
-async function checkUserAuthentication(): Promise<boolean> {
-    const cookie = cookies().get("auth-token")?.value;
+async function checkUserAuthentication(request: NextRequest): Promise<boolean> {
+    const cookie = request.cookies.get("auth-token")?.value;
     if (!cookie) return false;
     return true;
 }
 
 export async function middleware(request: NextRequest) {
-    const userAuthenticated = await checkUserAuthentication();
+    const userAuthenticated = await checkUserAuthentication(request);
     const currentPath = request.nextUrl.pathname;
 
     if (!userAuthenticated && currentPath.startsWith("/dashboard")) {
