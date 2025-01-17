@@ -13,8 +13,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import Loader from "./common/Loader";
 import { useRouter } from "next/navigation";
-import { useDispatch } from "react-redux";
-import { setUser } from "@/store/slices/userSlice";
 import api from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -37,8 +35,6 @@ export function SigninForm() {
     const { loginUser } = useAuth();
 
     const router = useRouter();
-
-    const dispatch = useDispatch();
 
     const [formErrors, setFormErrors] = useState<FormErrors>({});
 
@@ -82,8 +78,7 @@ export function SigninForm() {
             setIsLoading(true);
             const response = await api.post(`/auth/signin`, formData);
             if (response?.data?.success) {
-                dispatch(setUser({ email: response?.data?.user?.email, name: response?.data?.user?.name }))
-                loginUser({ email: response?.data?.user?.email, name: response?.data?.user?.name }); // update auth state
+                loginUser({ email: response?.data?.user?.email, name: response?.data?.user?.name }, response?.data?.token); // update auth state
                 toast.success(response?.data?.message);
                 setFormData({ email: "", password: "" }); // clear form data
                 setFormErrors({}); // clear errors

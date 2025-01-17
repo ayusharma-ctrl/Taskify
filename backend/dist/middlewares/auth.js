@@ -17,16 +17,19 @@ const userModel_1 = require("../models/userModel");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 // Check user is authenticated by verifying their token
 const isUserAuthenticated = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         // Get the token from the request cookies
-        const token = req.cookies['auth-token'];
+        const cookie_token = req.cookies['auth-token'];
+        const header_token = (_a = req.headers['authorization']) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
         // If the token doesn't exist, return an error message
-        if (!token) {
+        if (!cookie_token && !header_token) {
             return res.status(401).json({
                 success: false,
                 message: "Please login first!",
             });
         }
+        const token = cookie_token || header_token;
         // Verify the token using the JWT secret
         const decodedToken = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
         // Find the user associated with the decoded email

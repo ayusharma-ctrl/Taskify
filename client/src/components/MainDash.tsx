@@ -10,6 +10,7 @@ import { ITask, setTasks, updateStatus } from '@/store/slices/taskSlice';
 import axios from 'axios';
 import { toast } from 'sonner';
 import Loader from './common/Loader';
+import api from '@/lib/api';
 
 const MainDash = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -31,7 +32,7 @@ const MainDash = () => {
 
   const fetchUserData = async () => {
     try {
-      const response = await axios.get(`${baseUrl}/auth/user`, { withCredentials: true });
+      const response = await api.get("/auth/user");
       if (response?.data?.success) {
         const user = response?.data?.user;
         dispatch(setUser(user[0]));
@@ -44,7 +45,7 @@ const MainDash = () => {
   const fetchUserTasks = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`${baseUrl}/task`, { withCredentials: true });
+      const response = await api.get("/task");
       if (response?.data?.success) {
         const tasks: ITask[] = response?.data?.tasks || [];
         dispatch(setTasks(tasks));
@@ -61,7 +62,7 @@ const MainDash = () => {
 
   const handleTaskUpdate = async (id: string, status: string) => {
     try {
-      const response = await axios.put(`${baseUrl}/task/status/${id}`, { status }, { withCredentials: true });
+      const response = await api.put(`/task/status/${id}`, { status });
       if (response?.data?.success) {
         toast.success("Task status updated!");
       }

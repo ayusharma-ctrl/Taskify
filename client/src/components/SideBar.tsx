@@ -1,6 +1,4 @@
 "use client";
-import { useDispatch, useSelector } from "react-redux";
-import { clearUser, userData } from "@/store/slices/userSlice";
 import { ArrowDownToLine, BellDotIcon, ChevronsRight, CirclePlus, RefreshCcw, UserCircle2 } from 'lucide-react'
 import { Button } from "./ui/button";
 import NavigateButtons from "./NavigateButtons";
@@ -13,10 +11,8 @@ import api from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 
 const SideBar = () => {
-    const user = useSelector(userData);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const { logoutUser } = useAuth();
-    const dispatch = useDispatch();
+    const { user, logoutUser } = useAuth();
     const router = useRouter();
 
     const handleLogout = async () => {
@@ -24,7 +20,6 @@ const SideBar = () => {
             setIsLoading(true);
             const response = await api.get(`/auth/signout`);
             if (response?.data?.success) {
-                dispatch(clearUser());
                 logoutUser();
                 router.push("/");
                 toast.success(response?.data?.message);
@@ -42,7 +37,7 @@ const SideBar = () => {
         <div className='h-full flex flex-col justify-start items-start gap-4 px-2'>
             <div className="flex space-x-2">
                 <UserCircle2 strokeWidth={1} />
-                <h1>{user.name}</h1>
+                <h1>{user?.name}</h1>
             </div>
             <div className="w-full flex justify-between items-center space-x-2">
                 <div className="flex space-x-3">

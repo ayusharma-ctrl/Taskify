@@ -15,15 +15,19 @@ interface CustomJwtPayload extends JwtPayload {
 export const isUserAuthenticated = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
         // Get the token from the request cookies
-        const token = req.cookies['auth-token'];
+        const cookie_token = req.cookies['auth-token'];
+
+        const header_token = req.headers['authorization']?.split(' ')[1];
 
         // If the token doesn't exist, return an error message
-        if (!token) {
+        if (!cookie_token && !header_token) {
             return res.status(401).json({
                 success: false,
                 message: "Please login first!",
             });
         }
+
+        const token = cookie_token || header_token;
 
         // Verify the token using the JWT secret
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as CustomJwtPayload;

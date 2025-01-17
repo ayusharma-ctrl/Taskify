@@ -23,5 +23,6 @@ export const sendToken = (user: IUser, res: Response, message: string, statusCod
         success: true,
         message,
         user: userData,
+        token,
     });
 }

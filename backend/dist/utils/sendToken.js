@@ -23,6 +23,7 @@ const sendToken = (user, res, message, statusCode = 200) => {
         success: true,
         message,
         user: userData,
+        token,
     });
 };
 exports.sendToken = sendToken;
