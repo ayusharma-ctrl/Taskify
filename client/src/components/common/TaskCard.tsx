@@ -134,14 +134,13 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
 
     // below methods to enable onclick on card, beacause of listners, pointer events are disabled on parent div
     const handleMouseDown = () => {
-        setIsDragging(true);
+        setIsDragging(false);
         if (clickTimeout.current) {
             clearTimeout(clickTimeout.current);
         }
     };
 
     const handleMouseUp = () => {
-        setIsDragging(false);
         clickTimeout.current = setTimeout(() => {
             if (!isDragging) {
                 setIsDialogOpen(true);
@@ -154,7 +153,7 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                     <div
-                        className={`${isDragging && 'cursor-grabbing'} border rounded-md bg-gray-200 shadow-inner w-full px-2 py-3 flex flex-col gap-3`}
+                        className="active:cursor-grabbing border rounded-md bg-gray-200 shadow-inner w-full px-2 py-3 flex flex-col gap-3"
                         style={style}
                         {...listeners}
                         {...attributes}
