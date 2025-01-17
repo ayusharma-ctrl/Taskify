@@ -2,24 +2,14 @@
     "version": 2,
     "builds": [
         {
-            "src": "dist/app.js",
-            "use": "@vercel/node",
-            "config": {
-                "includeFiles": [
-                    "dist/**"
-                ]
-            }
+            "src": "app.ts",
+            "use": "@vercel/node"
         }
     ],
     "routes": [
         {
             "src": "/(.*)",
-            "dest": "dist/app.js"
-        }
-    ],
-    "headers": [
-        {
-            "source": "/(.*)",
+            "dest": "app.ts",
             "headers": [
                 {
                     "key": "Access-Control-Allow-Origin",
