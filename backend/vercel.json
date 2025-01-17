@@ -16,5 +16,24 @@
             "src": "/(.*)",
             "dest": "dist/app.js"
         }
+    ],
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "Access-Control-Allow-Origin",
+                    "value": "https://taskify-alpha-lime.vercel.app"
+                },
+                {
+                    "key": "Access-Control-Allow-Methods",
+                    "value": "GET, POST, PUT, DELETE, OPTIONS"
+                },
+                {
+                    "key": "Access-Control-Allow-Credentials",
+                    "value": "true"
+                }
+            ]
+        }
     ]
 }
