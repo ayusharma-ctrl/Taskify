@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '..';
 
-interface UserState {
+export interface UserState {
     name: string | null;
     email: string | null;
 }

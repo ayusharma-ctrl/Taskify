@@ -1,30 +1,32 @@
 "use client";
 import { useDispatch, useSelector } from "react-redux";
 import { clearUser, userData } from "@/store/slices/userSlice";
-import { AlertCircleIcon, ArrowDownToLine, BellDotIcon, ChevronsRight, CirclePlus, RefreshCcw, UserCircle2 } from 'lucide-react'
+import { ArrowDownToLine, BellDotIcon, ChevronsRight, CirclePlus, RefreshCcw, UserCircle2 } from 'lucide-react'
 import { Button } from "./ui/button";
 import NavigateButtons from "./NavigateButtons";
 import { TaskAddDialog } from "./common/TaskAddDialog";
 import { useState } from "react";
-import axios from "axios";
-import { baseUrl } from "@/lib/utils";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Loader from "./common/Loader";
+import api from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 const SideBar = () => {
     const user = useSelector(userData);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const { logoutUser } = useAuth();
     const dispatch = useDispatch();
     const router = useRouter();
 
     const handleLogout = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.get(`${baseUrl}/auth/signout`, { withCredentials: true });
+            const response = await api.get(`/auth/signout`);
             if (response?.data?.success) {
-                router.push("/");
                 dispatch(clearUser());
+                logoutUser();
+                router.push("/");
                 toast.success(response?.data?.message);
             } else {
                 toast.error("Something went wrong. Please try again later!");

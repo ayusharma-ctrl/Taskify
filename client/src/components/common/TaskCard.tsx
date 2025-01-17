@@ -134,13 +134,14 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
 
     // below methods to enable onclick on card, beacause of listners, pointer events are disabled on parent div
     const handleMouseDown = () => {
-        setIsDragging(false);
+        setIsDragging(true);
         if (clickTimeout.current) {
             clearTimeout(clickTimeout.current);
         }
     };
 
     const handleMouseUp = () => {
+        setIsDragging(false);
         clickTimeout.current = setTimeout(() => {
             if (!isDragging) {
                 setIsDialogOpen(true);
@@ -153,7 +154,7 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                     <div
-                        className='border rounded-md bg-gray-200 shadow-inner w-full px-2 py-3 flex flex-col gap-3'
+                        className={`${isDragging && 'cursor-grabbing'} border rounded-md bg-gray-200 shadow-inner w-full px-2 py-3 flex flex-col gap-3`}
                         style={style}
                         {...listeners}
                         {...attributes}
@@ -225,7 +226,7 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
                                     name="status"
                                     value={formData.status}
                                     onChange={handleChange}
-                                    className="p-2 appearance-none w-full text-base"
+                                    className="p-2 appearance-none w-full text-base cursor-pointer"
                                 >
                                     <option value="" disabled>Select Status</option>
                                     {statusOptions.map(option => (
@@ -258,7 +259,7 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
                                     name="priority"
                                     value={formData.priority}
                                     onChange={handleChange}
-                                    className="p-2 appearance-none w-full text-base"
+                                    className="p-2 appearance-none w-full text-base cursor-pointer"
                                 >
                                     <option value="" disabled>Select Priority</option>
                                     {priorityOptions.map(option => (
@@ -286,10 +287,10 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
                                     required
                                     type="date"
                                     name="deadline"
-                                    value={formData.deadline}
+                                    value={formData.deadline ? new Date(formData.deadline).toISOString().split('T')[0] : ''}
                                     onChange={handleChange}
                                     min={new Date().toISOString().split('T')[0]}
-                                    className="px-2 w-full text-base"
+                                    className="px-2 w-full text-base cursor-pointer"
                                 />
                             </div>
                         </div>
@@ -310,7 +311,7 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
                                     value={formData.description}
                                     onChange={handleChange}
                                     placeholder="Enter description here"
-                                    className="w-full px-5 py-2 text-base resize-none"
+                                    className="w-full px-5 py-2 text-base resize-none cursor-text"
                                 />
                             </div>
                         </div>
