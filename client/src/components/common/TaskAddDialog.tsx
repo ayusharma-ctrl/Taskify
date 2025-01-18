@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { baseUrl, priorityOptions, statusOptions } from "@/lib/utils";
-import { addTask } from "@/store/slices/taskSlice";
+import { ITask, setTasks } from "@/store/slices/taskSlice";
 import axios from "axios";
 import { Calendar, Loader, OctagonAlert, Pencil } from "lucide-react";
 import { useState } from "react";
@@ -36,6 +36,7 @@ interface FormData {
 interface FormErrors {
     title?: string;
     status?: string;
+    deadline?: string;
 }
 
 export function TaskAddDialog(props: IProps): JSX.Element {
@@ -74,6 +75,10 @@ export function TaskAddDialog(props: IProps): JSX.Element {
                     errorMessage = 'Status is required.';
                 }
                 break;
+            case 'deadline':
+                if (!fieldValue.trim()) {
+                    errorMessage = 'Deadline is required.'
+                }
             default:
                 break;
         }
@@ -81,9 +86,10 @@ export function TaskAddDialog(props: IProps): JSX.Element {
     };
 
     const handleSubmit = async () => {
-        if (Object.values(formErrors).some(Boolean) || !formData.title || !formData.status) {
+        if (Object.values(formErrors).some(Boolean) || !formData.title || !formData.status || !formData.deadline) {
             validateField("title", formData.title);
             validateField("status", formData.status);
+            validateField("deadline", formData.deadline);
             toast.error("Please check the credentials before submitting");
             return;
         }
@@ -91,7 +97,8 @@ export function TaskAddDialog(props: IProps): JSX.Element {
             setIsLoading(true);
             const response = await axios.post(`${baseUrl}/task`, formData, { withCredentials: true });
             if (response?.data?.success) {
-                dispatch(addTask(response?.data?.task));
+                const tasks: ITask[] = response?.data?.tasks || [];
+                dispatch(setTasks(tasks));
                 toast.success(response?.data?.message);
                 setFormData({ title: "", deadline: "", description: "", status: "", priority: "" }); // clear form data
                 setFormErrors({}); // clear errors
@@ -210,9 +217,15 @@ export function TaskAddDialog(props: IProps): JSX.Element {
                                 value={formData.deadline}
                                 onChange={handleChange}
                                 min={new Date().toISOString().split('T')[0]}
-                                className="px-2 w-full text-base"
+                                className="px-2 w-full text-base cursor-pointer"
                             />
                         </div>
+
+                        {formErrors.deadline && (
+                            <p className="text-red-500 text-xs font-normal mt-2 col-span-3">
+                                {formErrors.deadline}
+                            </p>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-[auto,0.4fr,2fr] gap-4 mt-4 w-full">

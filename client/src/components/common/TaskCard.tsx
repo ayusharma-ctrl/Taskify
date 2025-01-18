@@ -1,9 +1,9 @@
-import { deleteTask, ITask, updateTask } from '@/store/slices/taskSlice'
+import { deleteTask, ITask, setTasks, updateTask } from '@/store/slices/taskSlice'
 import { Calendar, Clock, Loader, Maximize2, Minimize2, OctagonAlert, Pencil, Trash2 } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { format, formatRelative } from 'date-fns';
+import { format, formatRelative, fromUnixTime } from 'date-fns';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTrigger } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
@@ -42,6 +42,11 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
 
     const [formErrors, setFormErrors] = useState<FormErrors>({});
 
+    const millisecondsToDate = (milliseconds: number) => {
+        const date = fromUnixTime(milliseconds / 1000);
+        return date;
+    }
+
     const validateField = (fieldName: keyof FormData, fieldValue: string) => {
         let errorMessage = '';
         switch (fieldName) {
@@ -68,11 +73,11 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
     };
 
     // delete task
-    const handleDelete= async () => {
+    const handleDelete = async () => {
         try {
-            const response = await axios.delete(`${baseUrl}/task/${task._id}`, { withCredentials: true });
+            const response = await axios.delete(`${baseUrl}/task/${task.id}`, { withCredentials: true });
             if (response?.status === 204) {
-                dispatch(deleteTask(task._id)); // delete from redux state
+                dispatch(deleteTask(task.id)); // delete from redux state
                 toast.success("Successfully deleted a task");
                 setFormData({ title: "", deadline: "", description: "", status: "", priority: "" }); // clear form data
                 setFormErrors({}); // clear errors
@@ -95,9 +100,11 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
         }
         try {
             setIsLoading(true);
-            const response = await axios.put(`${baseUrl}/task/${task._id}`, formData, { withCredentials: true });
+            const response = await axios.put(`${baseUrl}/task/${task.id}`, formData, { withCredentials: true });
             if (response?.data?.success) {
-                dispatch(updateTask(response?.data?.task)); // update redux state
+                // dispatch(updateTask(response?.data?.task)); // update redux state
+                const tasks: ITask[] = response?.data?.tasks || [];
+                dispatch(setTasks(tasks));
                 toast.success(response?.data?.message);
                 // setFormData({ title: "", deadline: "", description: "", status: "", priority: "" }); // clear form data
                 setFormErrors({}); // clear errors
@@ -114,10 +121,10 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
 
     // dragging implementation
     const { attributes, listeners, setNodeRef, transform } = useDraggable({
-        id: task._id,
+        id: task.id,
         data: {
             title: task.title,
-            index: task._id,
+            index: task.id,
             parent: task.status,
         },
     });
@@ -175,7 +182,7 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
                         {task?.deadline &&
                             <div className='flex items-center text-xs space-x-2'>
                                 <Clock strokeWidth={1.25} className='w-5 h-5' />
-                                <span>{format(task?.deadline, 'MMM d, yyyy')}</span>
+                                <span>{format(millisecondsToDate(Number(task?.deadline)), 'MMM d, yyyy')}</span>
                             </div>
                         }
                         <div className='text-gray-400 text-xs'>
@@ -286,7 +293,7 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
                                     required
                                     type="date"
                                     name="deadline"
-                                    value={formData.deadline ? new Date(formData.deadline).toISOString().split('T')[0] : ''}
+                                    value={formData?.deadline ? new Date(millisecondsToDate(Number(formData.deadline))).toISOString().split('T')[0] : ''}
                                     onChange={handleChange}
                                     min={new Date().toISOString().split('T')[0]}
                                     className="px-2 w-full text-base cursor-pointer"

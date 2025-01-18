@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTask = exports.updateStatus = exports.updateTask = exports.getTask = exports.getAllTasks = exports.addTask = void 0;
 const taskModel_1 = require("../models/taskModel");
 const mongoose_1 = __importDefault(require("mongoose"));
+const blockchain_1 = require("../utils/blockchain");
 const addTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // read the data from req body
@@ -27,25 +28,35 @@ const addTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         // id of authenticated user
-        const { _id } = req.user;
+        // const { _id } = req.user!;
         // save task in db
-        const task = yield taskModel_1.Task.create({
-            title,
-            description,
-            status,
-            priority,
-            deadline,
-            createdBy: _id,
-            createdAt: new Date(),
-        });
+        // const task = await Task.create({
+        //     title,
+        //     description,
+        //     status,
+        //     priority,
+        //     deadline,
+        //     createdBy: _id,
+        //     createdAt: new Date(),
+        // })
+        const tx = blockchain_1.contract.methods.addTask(title, description, status, priority, new Date(deadline).getTime());
+        const gas = yield tx.estimateGas({ from: blockchain_1.account.address });
+        const data = tx.encodeABI();
+        const signedTx = yield blockchain_1.web3.eth.accounts.signTransaction({
+            to: blockchain_1.contract.options.address,
+            data,
+            gas,
+        }, blockchain_1.account.privateKey);
+        const receipt = yield blockchain_1.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
         // send the response
         return res.status(200).json({
             success: true,
             message: "Task has been added successfully!",
-            task
+            receipt
         });
     }
     catch (e) {
+        console.log(e);
         return res.status(500).json({ success: false, message: e.message });
     }
 });
