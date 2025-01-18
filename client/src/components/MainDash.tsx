@@ -35,7 +35,11 @@ const MainDash = () => {
       const response = await api.get("/auth/user");
       if (response?.data?.success) {
         const user = response?.data?.user;
-        dispatch(setUser(user[0]));
+        const userData = {
+          name: user?.name,
+          email: user?.name,
+        }
+        dispatch(setUser(userData));
       }
     } catch (error) {
       console.log(error);
