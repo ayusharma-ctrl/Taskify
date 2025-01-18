@@ -44,7 +44,7 @@ export const isUserAuthenticated = async (req: AuthenticatedRequest, res: Respon
         }
 
         // Set the user object in the request for future use
-        req.user = user;
+        req.user = user[0];
 
         // Continue to the next middleware function
         next();

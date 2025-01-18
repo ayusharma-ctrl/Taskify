@@ -42,7 +42,7 @@ const isUserAuthenticated = (req, res, next) => __awaiter(void 0, void 0, void 0
             });
         }
         // Set the user object in the request for future use
-        req.user = user;
+        req.user = user[0];
         // Continue to the next middleware function
         next();
     }
