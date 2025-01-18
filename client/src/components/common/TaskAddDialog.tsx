@@ -123,7 +123,6 @@ export function TaskAddDialog(props: IProps): JSX.Element {
             </DialogTrigger>
             <DialogContent className="md:min-w-[725px]">
                 <DialogHeader>
-                    <DialogTitle></DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-col justify-start items-start gap-4 py-4">
                     <div className="w-full space-y-1">

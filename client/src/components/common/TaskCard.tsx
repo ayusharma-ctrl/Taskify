@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import { format, formatRelative, fromUnixTime } from 'date-fns';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTrigger } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { baseUrl, priorityOptions, statusOptions } from '@/lib/utils';
@@ -192,7 +192,6 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
                 </DialogTrigger>
                 <DialogContent className={`${dialogStyles.length ? dialogStyles : "md:min-w-[725px]"}`}>
                     <DialogHeader>
-                        <DialogTitle></DialogTitle>
                         <div className='absolute right-4 top-4 flex items-center gap-3 cursor-pointer'>
                             {
                                 dialogStyles.length ? <Minimize2 size={20} onClick={() => setDialogStyles("")} strokeWidth={1.5} className='h-5 w-5' />
