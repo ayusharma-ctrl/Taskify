@@ -8,14 +8,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTask = exports.updateStatus = exports.updateTask = exports.getTask = exports.getAllTasks = exports.addTask = void 0;
 const taskModel_1 = require("../models/taskModel");
-const mongoose_1 = __importDefault(require("mongoose"));
 const blockchain_1 = require("../utils/blockchain");
+const helper_1 = require("../utils/helper");
 const addTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // read the data from req body
@@ -28,7 +25,7 @@ const addTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             });
         }
         // id of authenticated user
-        // const { _id } = req.user!;
+        const { _id } = req.user;
         // save task in db
         // const task = await Task.create({
         //     title,
@@ -39,20 +36,18 @@ const addTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         //     createdBy: _id,
         //     createdAt: new Date(),
         // })
-        const tx = blockchain_1.contract.methods.addTask(title, description, status, priority, new Date(deadline).getTime());
-        const gas = yield tx.estimateGas({ from: blockchain_1.account.address });
-        const data = tx.encodeABI();
-        const signedTx = yield blockchain_1.web3.eth.accounts.signTransaction({
-            to: blockchain_1.contract.options.address,
-            data,
-            gas,
-        }, blockchain_1.account.privateKey);
-        const receipt = yield blockchain_1.web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+        // Prepare the transaction
+        const tx = blockchain_1.contract.methods.addTask(title, description, status, priority, new Date(deadline).getTime(), _id === null || _id === void 0 ? void 0 : _id.toString());
+        // Sign the transaction
+        yield (0, helper_1.signTransaction)(tx);
+        const updatedTasks = yield blockchain_1.contract.methods.getTasks().call({ from: blockchain_1.account.address });
+        const sanitizedTasks = (0, helper_1.sanitizeReceipt)(updatedTasks);
+        const formatTasks = (0, helper_1.formatTaskArray)(sanitizedTasks);
         // send the response
         return res.status(200).json({
             success: true,
             message: "Task has been added successfully!",
-            receipt
+            tasks: formatTasks || []
         });
     }
     catch (e) {
@@ -63,15 +58,29 @@ const addTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.addTask = addTask;
 const getAllTasks = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { _id } = req.user;
-        const tasks = yield taskModel_1.Task.find({ createdBy: _id });
-        res.status(200).json({ success: true, tasks: tasks || [] });
+        const tasks = yield blockchain_1.contract.methods.getTasks().call({ from: blockchain_1.account.address });
+        const sanitizedTasks = (0, helper_1.sanitizeReceipt)(tasks);
+        const formatTasks = (0, helper_1.formatTaskArray)(sanitizedTasks);
+        return res.status(200).json({
+            success: true,
+            tasks: formatTasks || []
+        });
     }
-    catch (err) {
-        res.status(500).json({ error: 'Internal Server Error' });
+    catch (error) {
+        console.log(error);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 });
 exports.getAllTasks = getAllTasks;
+// export const getAllTasks = async (req: AuthenticatedRequest, res: Response) => {
+//     try {
+//         const { _id } = req.user!;
+//         const tasks: ITask[] = await Task.find({ createdBy: _id });
+//         res.status(200).json({success: true, tasks: tasks || []});
+//     } catch (err) {
+//         res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// }
 const getTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
@@ -108,24 +117,32 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             });
         }
         // find task in db
-        const task = yield taskModel_1.Task.findById(id);
-        if (!task) {
-            return res.status(404).json({ error: 'Task not found' });
-        }
-        // save latest details
-        task.title = title;
-        task.description = description;
-        task.status = status;
-        task.priority = priority;
-        task.deadline = deadline;
-        yield task.save();
+        // const task = await Task.findById(id);
+        // if (!task) {
+        //     return res.status(404).json({ error: 'Task not found' });
+        // }
+        // // save latest details
+        // task.title = title;
+        // task.description = description;
+        // task.status = status;
+        // task.priority = priority;
+        // task.deadline = deadline;
+        // await task.save();
+        // Prepare the transaction
+        const tx = blockchain_1.contract.methods.updateTask(id, title, description, status, priority, deadline);
+        // Sign the transaction
+        yield (0, helper_1.signTransaction)(tx);
+        const updatedTasks = yield blockchain_1.contract.methods.getTasks().call({ from: blockchain_1.account.address });
+        const sanitizedTasks = (0, helper_1.sanitizeReceipt)(updatedTasks);
+        const formatTasks = (0, helper_1.formatTaskArray)(sanitizedTasks);
         return res.status(200).json({
             success: true,
             message: "Task has been updated successfully!",
-            task
+            tasks: formatTasks || []
         });
     }
     catch (err) {
+        console.log(err);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
@@ -148,38 +165,48 @@ const updateStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             });
         }
         // find task in db
-        const task = yield taskModel_1.Task.findById(id);
-        if (!task) {
-            return res.status(404).json({ error: 'Task not found' });
-        }
-        // save latest status
-        task.status = status;
-        yield task.save();
+        // const task = await Task.findById(id);
+        // if (!task) {
+        //     return res.status(404).json({ error: 'Task not found' });
+        // }
+        // // save latest status
+        // task.status = status;
+        // await task.save();
+        const tx = blockchain_1.contract.methods.updateTaskStatus(id, status);
+        yield (0, helper_1.signTransaction)(tx);
         return res.status(200).json({
             success: true,
             message: "Task has been updated successfully!",
-            task
         });
     }
     catch (err) {
+        console.log(err);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 exports.updateStatus = updateStatus;
 const deleteTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id } = req.params;
-        // validation check
-        if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
+        const { id } = req.params; // task id
+        // validate task id
+        // if (!mongoose.Types.ObjectId.isValid(id)) {
+        //     return res.status(400).json({ success: false, error: 'Invalid task ID' });
+        // }
+        if (!id) {
             return res.status(400).json({ success: false, error: 'Invalid task ID' });
         }
-        const result = yield taskModel_1.Task.findByIdAndDelete(id);
-        if (!result) {
-            return res.status(404).json({ success: false, error: 'Task not found' });
-        }
+        // delete form mongoDb
+        // const result = await Task.findByIdAndDelete(id);
+        // delete from contract
+        const tx = blockchain_1.contract.methods.deleteTask(id);
+        yield (0, helper_1.signTransaction)(tx);
+        // if (!result) {
+        //     return res.status(404).json({ success: false, error: 'Task not found' });
+        // }
         return res.status(204).json({ success: true, message: 'Task deleted successfully' });
     }
     catch (err) {
+        console.log(err);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
