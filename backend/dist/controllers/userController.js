@@ -16,6 +16,7 @@ exports.updatePassword = exports.signout = exports.getUserProfile = exports.sign
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const userModel_1 = require("../models/userModel");
 const sendToken_1 = require("../utils/sendToken");
+const taskController_1 = require("./taskController");
 // method to add new user
 const signup = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -93,17 +94,23 @@ const signin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.signin = signin;
 // method to fetch user profile
-const getUserProfile = (req, res) => {
+const getUserProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     try {
+        let notifications;
+        if ((_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a._id) {
+            notifications = yield (0, taskController_1.getActiveNotifications)((_b = req === null || req === void 0 ? void 0 : req.user) === null || _b === void 0 ? void 0 : _b._id);
+        }
         res.json({
             success: true,
-            user: req.user // only authorized users can see their profile data
+            user: req === null || req === void 0 ? void 0 : req.user,
+            notifications: notifications || [],
         });
     }
     catch (e) {
         res.status(500).json({ success: false, message: e.message });
     }
-};
+});
 exports.getUserProfile = getUserProfile;
 // method to signout user
 const signout = (req, res) => {

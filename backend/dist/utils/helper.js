@@ -20,6 +20,7 @@ const formatTaskArray = (data) => {
             status: item === null || item === void 0 ? void 0 : item.status,
             priority: item === null || item === void 0 ? void 0 : item.priority,
             deadline: item === null || item === void 0 ? void 0 : item.deadline,
+            createdBy: item === null || item === void 0 ? void 0 : item.createdBy,
         };
         return task;
     });

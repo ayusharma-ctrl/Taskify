@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { User } from '../models/userModel';
 import { sendToken } from '../utils/sendToken';
 import { AuthenticatedRequest } from '../middlewares/auth';
+import { getActiveNotifications } from './taskController';
 
 // method to add new user
 export const signup = async (req: Request, res: Response) => {
@@ -92,12 +93,19 @@ export const signin = async (req: Request, res: Response) => {
 }
 
 // method to fetch user profile
-export const getUserProfile = (req: AuthenticatedRequest, res: Response) => {
+export const getUserProfile = async (req: AuthenticatedRequest, res: Response) => {
     try {
+        let notifications;
+
+        if (req?.user?._id) {
+            notifications = await getActiveNotifications(req?.user?._id);
+        }
+
         res.json({
             success: true,
-            user: req.user // only authorized users can see their profile data
-        })
+            user: req?.user,
+            notifications: notifications || [],
+        });
     }
     catch (e: any) {
         res.status(500).json({ success: false, message: e.message });

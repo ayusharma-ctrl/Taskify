@@ -15,7 +15,7 @@ const TaskStack = ({ stackTitle, status }: { stackTitle: string, status: string 
 
     return (
         <div ref={setNodeRef} className='p-2 flex flex-col items-start justify-start gap-4'>
-            <h1>{stackTitle}</h1>
+            <h1 className='text-xl font-semibold leading-none tracking-tight'>{stackTitle}</h1>
             {data && data.length > 0 && data.filter((task) => task?.status === status).map((task, index) =>
                 <TaskCard key={index} task={task} />
             )}

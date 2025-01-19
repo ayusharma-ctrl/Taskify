@@ -52,9 +52,24 @@ contract TodoContract {
         taskCounter++;
     }
 
-    // Function to get all tasks
-    function getTasks() public view returns (Task[] memory) {
-        return tasks;
+    // Function to get all tasks - by user id
+    function getTasks(string memory _userId) public view returns (Task[] memory) {
+        Task[] memory userTasks = new Task[](tasks.length); // Initialize with maximum possible size
+        uint256 count = 0; 
+
+        for(uint256 i = 0; i < tasks.length; i++) {
+            if (keccak256(bytes(tasks[i].createdBy)) == keccak256(bytes(_userId))) { 
+                userTasks[count] = tasks[i];
+                count++;
+            }
+        }
+
+        // Resize the array to the actual number of user tasks
+        assembly {
+            mstore(userTasks, count) 
+        }
+
+        return userTasks;
     }
 
     // Function to get a task by ID
@@ -117,5 +132,44 @@ contract TodoContract {
     function clearTasks() public {
         delete tasks; // Delete all elements in the array
         emit AllTasksCleared();
+    }
+
+    // Function to get overdue tasks
+    function getOverdueTasks() public view returns (Task[] memory) {
+
+        Task[] memory overdueTasks = new Task[](tasks.length); // Initialize with maximum possible size
+        uint256 count = 0; 
+
+        for (uint256 i = 0; i < tasks.length; i++) {
+            if (isOverdue(tasks[i].deadline)) {
+                overdueTasks[count] = tasks[i];
+                count++;
+            }
+        }
+
+        // Resize the array to the actual number of user tasks
+        assembly {
+            mstore(overdueTasks, count) 
+        }
+
+        return overdueTasks;
+    }
+
+    // Function to check for an overdue task - return bool
+    function isOverdue(uint256 deadline) internal view returns (bool) {
+        uint256 currentDateMillis = getCurrentDateMillis(); // Get current date in milliseconds
+        return deadline < currentDateMillis; // Check if the deadline has passed
+    }
+
+    // Helper function to get current date in milliseconds (without time)
+    function getCurrentDateMillis() internal view returns (uint256) {
+        // Get current timestamp in seconds
+        uint256 timestamp = block.timestamp;
+
+        // Calculate current date in seconds by removing time portion
+        uint256 currentDayInSeconds = timestamp - (timestamp % 86400); // 86400 seconds in a day
+
+        // Convert current date in seconds to milliseconds
+        return currentDayInSeconds * 1000; 
     }
 }

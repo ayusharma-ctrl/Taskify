@@ -75,6 +75,7 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
     // delete task
     const handleDelete = async () => {
         try {
+            setIsLoading(true);
             const response = await axios.delete(`${baseUrl}/task/${task.id}`, { withCredentials: true });
             if (response?.status === 204) {
                 dispatch(deleteTask(task.id)); // delete from redux state
@@ -83,7 +84,9 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
                 setFormErrors({}); // clear errors
                 setIsDialogOpen(false); // close dialog
             }
+            setIsLoading(false);
         } catch (error) {
+            setIsLoading(false);
             toast.error("Failed to delete", {
                 description: "Please try again later!"
             });
@@ -182,7 +185,9 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
                         {task?.deadline &&
                             <div className='flex items-center text-xs space-x-2'>
                                 <Clock strokeWidth={1.25} className='w-5 h-5' />
-                                <span>{format(millisecondsToDate(Number(task?.deadline)), 'MMM d, yyyy')}</span>
+                                <span className={`${new Date().getTime() > Number(task?.deadline) ? 'text-red-500 border border-red-600 bg-red-200 p-1 rounded-md' : 'text-green-500'}`}>
+                                    {format(millisecondsToDate(Number(task?.deadline)), 'MMM d, yyyy')}
+                                </span>
                             </div>
                         }
                         <div className='text-gray-400 text-xs'>
@@ -198,14 +203,14 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
                                 dialogStyles.length ? <Minimize2 size={20} onClick={() => setDialogStyles("")} strokeWidth={1.5} className='h-5 w-5' />
                                     : <Maximize2 onClick={() => setDialogStyles("h-full min-w-full")} size={20} strokeWidth={1.5} className='h-5 w-5' />
                             }
-                            <Button onClick={handleDelete} variant={'outline'} size={'sm'}>
+                            <Button disabled={isLoading} onClick={handleDelete} variant={'outline'} size={'sm'} className='active:text-red-500'>
                                 <Trash2 size={20} strokeWidth={1} className='h-4 w-4 mr-2' />
                                 Delete
                             </Button>
                         </div>
                     </DialogHeader>
                     <div className="flex flex-col justify-start items-start gap-4 py-4">
-                        <div className="w-full space-y-1">
+                        <div className="w-full space-y-1 mt-4">
                             <Input
                                 required
                                 name="title"

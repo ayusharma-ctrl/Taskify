@@ -11,6 +11,8 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import Loader from './common/Loader';
 import api from '@/lib/api';
+import { setNotifications } from '@/store/slices/notificationSlice';
+import AnalyticsDash from './AnalyticsDash';
 
 const MainDash = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -39,6 +41,8 @@ const MainDash = () => {
           name: user?.name,
           email: user?.name,
         }
+        const notifications = response?.data?.notifications;
+        dispatch(setNotifications(notifications));
         dispatch(setUser(userData));
       }
     } catch (error) {
@@ -90,13 +94,20 @@ const MainDash = () => {
         <div className='text-lg lg:text-2xl font-semibold'>
           {`${getGreeting()}, ${name?.split(' ')[0]}!`}
         </div>
-        <div className='text-xs lg:text-sm flex items-center gap-2'>
-          Help & Feedback
-          <CircleHelp className='h-4 w-4' />
+
+        <div className='flex justify-between items-center space-x-2'>
+          {isLoading && <Loader text='Fetching lastest data' />}
+
+          <div className='text-xs lg:text-sm flex items-center gap-2'>
+            Help & Feedback
+            <CircleHelp className='h-4 w-4' />
+          </div>
+
         </div>
       </div>
 
-      {isLoading && <div className='my-2'><Loader text='Fetching lastest data' /></div>}
+      {/* Dahsboard */}
+      <AnalyticsDash />
 
       {/* Tasks section */}
       <DndContext
@@ -112,7 +123,7 @@ const MainDash = () => {
           }
         }}
       >
-        <div className='w-full grid grid-cols-[1fr,1fr,1fr,1fr] gap-4'>
+        <div className='w-full h-full grid grid-cols-[1fr,1fr,1fr,1fr] gap-4'>
           {statusOptions.map((status, index) =>
             <TaskStack key={index} stackTitle={status.label} status={status.value} />
           )}

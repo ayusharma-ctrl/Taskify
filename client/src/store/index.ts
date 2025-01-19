@@ -3,10 +3,12 @@ import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import userReducer from './slices/userSlice';
 import taskReducer from './slices/taskSlice';
+import notificationReducer from './slices/notificationSlice';
 
 const rootReducer = combineReducers({
   user: userReducer,
   tasks: taskReducer,
+  notifications: notificationReducer,
 });
 
 const persistConfig = {

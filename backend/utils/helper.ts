@@ -9,6 +9,7 @@ export const formatTaskArray = (data: any) => {
             status: item?.status,
             priority: item?.priority,
             deadline: item?.deadline,
+            createdBy: item?.createdBy,
         }
         return task;
     })

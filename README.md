@@ -71,6 +71,8 @@ cd Taskify
     PRIVATE_KEY=your_private_key_from_metamask
 
     CONTRACT_ADDRESS=deployed_contract_address
+
+    GEMINI_API_KEY=your_google_gemini_api_key
     ```
 
 4. Start the backend server:
@@ -111,11 +113,13 @@ cd Taskify
 
 ---
 
-## Usage
+## Usage and Features
 
 1. Open the frontend application in your browser at `http://localhost:3000`.
 2. Connect your MetaMask wallet to the Polygon PoS Amoy testnet.
 3. Add tasks, retrieve them, and modify their details using the app. All task data will be stored on the blockchain.
+4. Get reminders for overdue tasks.
+5. Suggest task priorities based on deadlines and task types. 
 
 ---
 
@@ -131,6 +135,5 @@ cd Taskify
 
 - For blockchain-related functionalities, make sure you have test POL or MATIC tokens in your wallet.
 - Ensure you are on the Polygon Amoy testnet in MetaMask to interact with the smart contract.
-- AI Agent Integration is under development
 
 ---
