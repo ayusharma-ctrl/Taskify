@@ -3,12 +3,13 @@ import { Request, Response } from 'express';
 import cron from 'node-cron';
 import { ITask, Task } from "../models/taskModel";
 import { AuthenticatedRequest } from '../middlewares/auth';
-import { contract, account } from '../utils/blockchain';
-import { formatTaskArray, sanitizeReceipt, signTransaction } from '../utils/helper';
+import { contract, account, contractWs } from '../utils/blockchain';
+import { formatTaskArray, formatTaskObj, sanitizeReceipt, signTransaction } from '../utils/helper';
 import { User } from '../models/userModel';
 import { IUserTask } from '../lib';
 import { Notification } from '../models/notificationModel';
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { socket } from '../app';
 
 
 export const addTask = async (req: AuthenticatedRequest, res: Response) => {
@@ -42,17 +43,18 @@ export const addTask = async (req: AuthenticatedRequest, res: Response) => {
         const tx = contract.methods.addTask(title, description, status, priority, new Date(deadline).getTime(), _id?.toString());
 
         // Sign the transaction
-        await signTransaction(tx);
+        // await signTransaction(tx);
+        signTransaction(tx);
 
-        const updatedTasks = await contract.methods.getTasks(_id?.toString()).call({ from: account.address });
-        const sanitizedTasks = sanitizeReceipt(updatedTasks);
-        const formatTasks = formatTaskArray(sanitizedTasks);
+        // const updatedTasks = await contract.methods.getTasks(_id?.toString()).call({ from: account.address });
+        // const sanitizedTasks = sanitizeReceipt(updatedTasks);
+        // const formatTasks = formatTaskArray(sanitizedTasks);
 
         // send the response
         return res.status(200).json({
             success: true,
-            message: "Task has been added successfully!",
-            tasks: formatTasks || []
+            message: "New task will be added soon! Will notify you once added successfully.",
+            // tasks: formatTasks || []
         });
     }
     catch (e: any) {
@@ -342,3 +344,17 @@ const generateAiSummary = async (user_id: string) => {
 
 // Schedule the cron job (runs daily at 2 AM)
 cron.schedule('0 2 * * *', sendOverdueTaskReminders);
+
+
+
+// listen smart contract events
+const subscription = contractWs.events.TaskAdded({
+    fromBlock: 'latest', // listen for new events starting from the latest block
+});
+
+subscription.on('data', data => {
+    const task = formatTaskObj(sanitizeReceipt(data.returnValues));
+    socket.emit("newTask", task);
+});
+
+subscription.on('error', error => console.log(error));

@@ -21,6 +21,7 @@ const helper_1 = require("../utils/helper");
 const userModel_1 = require("../models/userModel");
 const notificationModel_1 = require("../models/notificationModel");
 const generative_ai_1 = require("@google/generative-ai");
+const app_1 = require("../app");
 const addTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // read the data from req body
@@ -47,15 +48,16 @@ const addTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // Prepare the transaction
         const tx = blockchain_1.contract.methods.addTask(title, description, status, priority, new Date(deadline).getTime(), _id === null || _id === void 0 ? void 0 : _id.toString());
         // Sign the transaction
-        yield (0, helper_1.signTransaction)(tx);
-        const updatedTasks = yield blockchain_1.contract.methods.getTasks(_id === null || _id === void 0 ? void 0 : _id.toString()).call({ from: blockchain_1.account.address });
-        const sanitizedTasks = (0, helper_1.sanitizeReceipt)(updatedTasks);
-        const formatTasks = (0, helper_1.formatTaskArray)(sanitizedTasks);
+        // await signTransaction(tx);
+        (0, helper_1.signTransaction)(tx);
+        // const updatedTasks = await contract.methods.getTasks(_id?.toString()).call({ from: account.address });
+        // const sanitizedTasks = sanitizeReceipt(updatedTasks);
+        // const formatTasks = formatTaskArray(sanitizedTasks);
         // send the response
         return res.status(200).json({
             success: true,
-            message: "Task has been added successfully!",
-            tasks: formatTasks || []
+            message: "New task will be added soon! Will notify you once added successfully.",
+            // tasks: formatTasks || []
         });
     }
     catch (e) {
@@ -312,3 +314,12 @@ const generateAiSummary = (user_id) => __awaiter(void 0, void 0, void 0, functio
 });
 // Schedule the cron job (runs daily at 2 AM)
 node_cron_1.default.schedule('0 2 * * *', sendOverdueTaskReminders);
+// listen smart contract events
+const subscription = blockchain_1.contractWs.events.TaskAdded({
+    fromBlock: 'latest', // listen for new events starting from the latest block
+});
+subscription.on('data', data => {
+    const task = (0, helper_1.formatTaskObj)((0, helper_1.sanitizeReceipt)(data.returnValues));
+    app_1.socket.emit("newTask", task);
+});
+subscription.on('error', error => console.log(error));

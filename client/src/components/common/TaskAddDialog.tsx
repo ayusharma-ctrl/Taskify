@@ -96,14 +96,24 @@ export function TaskAddDialog(props: IProps): JSX.Element {
         try {
             setIsLoading(true);
             const response = await axios.post(`${baseUrl}/task`, formData, { withCredentials: true });
+            
             if (response?.data?.success) {
-                const tasks: ITask[] = response?.data?.tasks || [];
-                dispatch(setTasks(tasks));
                 toast.success(response?.data?.message);
                 setFormData({ title: "", deadline: "", description: "", status: "", priority: "" }); // clear form data
                 setFormErrors({}); // clear errors
                 setIsDialogOpen(false);
             }
+
+            // const response = await axios.post(`${baseUrl}/task`, formData, { withCredentials: true });
+            // if (response?.data?.success) {
+            //     const tasks: ITask[] = response?.data?.tasks || [];
+            //     dispatch(setTasks(tasks));
+            //     toast.success(response?.data?.message);
+            //     setFormData({ title: "", deadline: "", description: "", status: "", priority: "" }); // clear form data
+            //     setFormErrors({}); // clear errors
+            //     setIsDialogOpen(false);
+            // }
+
             setIsLoading(false);
         } catch (error) {
             setIsLoading(false);

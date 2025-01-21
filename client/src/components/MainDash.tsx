@@ -6,18 +6,25 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import TaskStack from './common/TaskStack';
 import { DndContext, rectIntersection } from "@dnd-kit/core";
-import { ITask, setTasks, updateStatus } from '@/store/slices/taskSlice';
+import { addTask, ITask, setTasks, updateStatus } from '@/store/slices/taskSlice';
 import axios from 'axios';
 import { toast } from 'sonner';
 import Loader from './common/Loader';
 import api from '@/lib/api';
 import { setNotifications } from '@/store/slices/notificationSlice';
 import AnalyticsDash from './AnalyticsDash';
+import socket from '@/lib/socket';
+
+export interface IUpdating {
+  activeCardId: string | null
+}
 
 const MainDash = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { name } = useSelector(userData);
   const dispatch = useDispatch();
+
+  const [isUpdating, setIsUpdating] = useState<IUpdating>({ activeCardId: null });
 
   const getGreeting = () => {
     const now = new Date();
@@ -70,6 +77,7 @@ const MainDash = () => {
 
   const handleTaskUpdate = async (id: string, status: string) => {
     try {
+      setIsUpdating({ activeCardId: id });
       const response = await api.put(`/task/status/${id}`, { status });
       if (response?.data?.success) {
         toast.success("Task status updated!");
@@ -78,6 +86,8 @@ const MainDash = () => {
       toast.error("Failed to save status", {
         description: "Please try again later or refresh the page!"
       });
+    } finally {
+      setIsUpdating({ activeCardId: null });
     }
   }
 
@@ -85,6 +95,21 @@ const MainDash = () => {
     fetchUserData();
     fetchUserTasks();
   }, []);
+
+  useEffect(() => {
+    socket.connect();
+
+    // listen new task event
+    socket.on("newTask", (task: ITask) => {
+      dispatch(addTask(task));
+      toast.success("New task added successfully!");
+    });
+
+    // clean listeners on unmount
+    return () => {
+      socket.disconnect();
+    }
+  }, [socket]);
 
   return (
     <div className='h-full flex flex-col justify-start items-start gap-4 px-2'>
@@ -125,7 +150,7 @@ const MainDash = () => {
       >
         <div className='w-full h-full grid grid-cols-[1fr,1fr,1fr,1fr] gap-4'>
           {statusOptions.map((status, index) =>
-            <TaskStack key={index} stackTitle={status.label} status={status.value} />
+            <TaskStack key={index} stackTitle={status.label} status={status.value} isUpdating={isUpdating} />
           )}
         </div>
       </DndContext>

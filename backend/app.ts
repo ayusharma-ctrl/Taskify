@@ -5,10 +5,21 @@ import { config } from 'dotenv';
 import { dbConnect } from './config/database';
 import userRouter from './routes/userRoute';
 import taskRouter from './routes/taskRoute';
+import http from 'http';
+import { Server } from 'socket.io';
 
 
 //create a new instance of an express application
 const app = express();
+
+const server = http.createServer(app); // create http server
+export const socket = new Server(server, {
+    cors: {
+        origin: [process.env.FRONTEND_URL!],
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true
+    },
+}); // socket instance
 
 //setting up env file so that we can access the variables
 config({
@@ -46,7 +57,20 @@ app.get("/", (req, res) => {
     </div>`)
 })
 
+//<--------------------------------------------------------------------->
+
+// socket
+socket.on('connection', (socket) => {
+
+    console.log("User connected");
+
+    socket.on('disconnect', function () {
+        console.log('user disconnected');
+    });
+})
+
+
 //server to listen all the http requests
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
     console.log(`Server is running on port ${process.env.PORT}!`);
 })

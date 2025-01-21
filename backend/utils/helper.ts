@@ -15,6 +15,18 @@ export const formatTaskArray = (data: any) => {
     })
 }
 
+export const formatTaskObj = (data: any) => {
+    return {
+        id: data?.id,
+        title: data?.title,
+        description: data?.description,
+        status: data?.status,
+        priority: data?.priority,
+        deadline: data?.deadline,
+        createdBy: data?.createdBy,
+    }
+}
+
 export const sanitizeReceipt = (data: any) => {
     return JSON.parse(
         JSON.stringify(data, (key, value) =>

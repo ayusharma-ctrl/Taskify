@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signTransaction = exports.sanitizeReceipt = exports.formatTaskArray = void 0;
+exports.signTransaction = exports.sanitizeReceipt = exports.formatTaskObj = exports.formatTaskArray = void 0;
 const blockchain_1 = require("./blockchain");
 const formatTaskArray = (data) => {
     return data.map((item) => {
@@ -26,6 +26,18 @@ const formatTaskArray = (data) => {
     });
 };
 exports.formatTaskArray = formatTaskArray;
+const formatTaskObj = (data) => {
+    return {
+        id: data === null || data === void 0 ? void 0 : data.id,
+        title: data === null || data === void 0 ? void 0 : data.title,
+        description: data === null || data === void 0 ? void 0 : data.description,
+        status: data === null || data === void 0 ? void 0 : data.status,
+        priority: data === null || data === void 0 ? void 0 : data.priority,
+        deadline: data === null || data === void 0 ? void 0 : data.deadline,
+        createdBy: data === null || data === void 0 ? void 0 : data.createdBy,
+    };
+};
+exports.formatTaskObj = formatTaskObj;
 const sanitizeReceipt = (data) => {
     return JSON.parse(JSON.stringify(data, (key, value) => typeof value === "bigint" ? value.toString() : value));
 };

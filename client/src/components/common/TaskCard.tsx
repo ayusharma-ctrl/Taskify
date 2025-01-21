@@ -12,6 +12,7 @@ import { Input } from '../ui/input';
 import { useDispatch } from 'react-redux';
 import { toast } from 'sonner';
 import axios from 'axios';
+import { IUpdating } from '../MainDash';
 
 interface FormData {
     title: string;
@@ -26,7 +27,12 @@ interface FormErrors {
     status?: string;
 }
 
-const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
+interface TaskCardProps {
+    task: ITask
+    isUpdating: IUpdating
+}
+
+const TaskCard: React.FC<TaskCardProps> = ({ task, isUpdating }): JSX.Element => {
     const [formData, setFormData] = useState<FormData>({
         title: task.title || '',
         description: task.description || '',
@@ -163,7 +169,8 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                     <div
-                        className="active:cursor-grabbing border rounded-md bg-gray-200 shadow-inner w-full px-2 py-3 flex flex-col gap-3"
+                        className={`active:cursor-grabbing border rounded-md bg-gray-200 shadow-inner w-full px-2 py-3 flex 
+                            flex-col gap-3 ${isUpdating?.activeCardId && isUpdating?.activeCardId === task.id ? "opacity-60 blur-sm" : ""}`}
                         style={style}
                         {...listeners}
                         {...attributes}
@@ -185,8 +192,15 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
                         {task?.deadline &&
                             <div className='flex items-center text-xs space-x-2'>
                                 <Clock strokeWidth={1.25} className='w-5 h-5' />
-                                <span className={`${new Date().getTime() > Number(task?.deadline) ? 'text-red-500 border border-red-600 bg-red-200 p-1 rounded-md' : 'text-green-500'}`}>
-                                    {format(millisecondsToDate(Number(task?.deadline)), 'MMM d, yyyy')}
+                                <span
+                                    className={`${new Date().getTime() > Number(task?.deadline)
+                                        ? 'text-red-500 border border-red-600 bg-red-200 p-1 rounded-md'
+                                        : 'text-green-500'
+                                        }`}
+                                >
+                                    {task?.deadline
+                                        ? format(new Date(Number(task.deadline)), 'MMM d, yyyy')
+                                        : 'No deadline set'}
                                 </span>
                             </div>
                         }
@@ -299,7 +313,11 @@ const TaskCard = ({ task }: { task: ITask }): JSX.Element => {
                                     required
                                     type="date"
                                     name="deadline"
-                                    value={formData?.deadline ? new Date(millisecondsToDate(Number(formData.deadline))).toISOString().split('T')[0] : ''}
+                                    value={
+                                        formData?.deadline
+                                            ? new Date(Number(formData.deadline)).toISOString().split('T')[0]
+                                            : ''
+                                    }
                                     onChange={handleChange}
                                     min={new Date().toISOString().split('T')[0]}
                                     className="px-2 w-full text-base cursor-pointer"

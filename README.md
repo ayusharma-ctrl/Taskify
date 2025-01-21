@@ -72,6 +72,8 @@ cd Taskify
 
     CONTRACT_ADDRESS=deployed_contract_address
 
+    ALCHEMY_WEBSOCKET_URL=wss://polygon-amoy.g.alchemy.com/v2/your_api_key
+
     GEMINI_API_KEY=your_google_gemini_api_key
     ```
 
@@ -101,6 +103,7 @@ cd Taskify
 
     ```env
     NEXT_PUBLIC_API_URL=http://localhost:5000/api/v1
+    NEXT_PUBLIC_SOCKET_URL=http://localhost:5000
     ```
 
 4. Start the frontend development server:
@@ -137,3 +140,5 @@ cd Taskify
 - Ensure you are on the Polygon Amoy testnet in MetaMask to interact with the smart contract.
 
 ---
+
+![alt text](https://i.ibb.co/pLkb3CR/Screenshot-2025-01-20-032500.png)
